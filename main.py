@@ -30,7 +30,7 @@ class TicTacToeGrid:
             repr.append(' | ' + ' | '.join(self.grid[i]) + ' | ')
             repr.append(interline)
 
-        repr.append(' | ' + ' | '.join([str(i) for i in range(1, self.rows+1)]) + ' | ')
+        repr.append(' | ' + ' | '.join([str(i) for i in range(1, self.rows+2)]) + ' | ')
 
         return '\n'.join(repr) + '\n\n'
 
@@ -43,33 +43,53 @@ class TicTacToeGrid:
         if self.nb_tokens[column] < self.rows:
             self.nb_tokens[column] += 1
             self.grid[self.rows-self.nb_tokens[column]][column] = token
-            return True
+            return 2 if self.check_winner(token) else 0
         else:
-            return False
+            return 1
 
+    def check_winner(self, token):
+        COLUMN_COUNT = self.columns
+        ROW_COUNT = self.rows
+        M = self.grid
+        # Check horizontal locations for win
+        for c in range(COLUMN_COUNT - 3):
+            for r in range(ROW_COUNT):
+                if M[r][c] == token and M[r][c + 1] == token and M[r][c + 2] == token and M[r][c + 3] == token:
+                    return True
 
-        def check_winner(self, token):
-            #TODO: check http://romain.raveaux.free.fr/document/ReinforcementLearningbyQLearningConnectFourGame.html
-            # Check on lines
-            aligned = 0
-            for i in range(self.rows):
-                for j in range(self.colmuns):
-                    self.grid[]                
+        # Check vertical locations for win
+        for c in range(COLUMN_COUNT):
+            for r in range(ROW_COUNT - 3):
+                if M[r][c] == token and M[r + 1][c] == token and M[r + 2][c] == token and M[r + 3][c] == token:
+                    return True
+
+        # Check positively sloped diaganols
+        for c in range(COLUMN_COUNT - 3):
+            for r in range(ROW_COUNT - 3):
+                if M[r][c] == token and M[r + 1][c + 1] == token and M[r + 2][c + 2] == token and M[r + 3][c + 3] == token:
+                    return True
+
+        # Check negatively sloped diaganols
+        for c in range(COLUMN_COUNT - 3):
+            for r in range(3, ROW_COUNT):
+                if M[r][c] == token and M[r - 1][c + 1] == token and M[r - 2][c + 2] == token and M[r - 3][c + 3] == token:
+                    return True
 
 
 grid = TicTacToeGrid()
 
 print(grid)
 
-print(grid.add_token(2, 1))
-print(grid.add_token(4, 2))
-print(grid.add_token(2, 1))
-print(grid.add_token(2, 1))
-print(grid.add_token(2, 1))
-print(grid.add_token(2, 1))
-print(grid.add_token(2, 1))
-print(grid.add_token(2, 1))
-print(grid.add_token(2, 1))
-print(grid.add_token(5, 1))
+joueur = 1
+resultat = 0
+while resultat < 2:
+    colonne = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
+    resultat = grid.add_token(colonne, joueur)
+    if resultat == 0:
+        print(grid)
+        joueur = 2 if joueur == 1 else 1
+
 
 print(grid)
+print(f"Le joueur {joueur} a gagné !")
+
