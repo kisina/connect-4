@@ -30,12 +30,46 @@ class TicTacToeGrid:
             repr.append(' | ' + ' | '.join(self.grid[i]) + ' | ')
             repr.append(interline)
 
-        repr.append(' | ' + ' | '.join([str(i) for i in range(1, self.rows+2)]) + ' | ')
+        repr.append(' | ' + ' | '.join([str(i) for i in range(1, self.rows+1)]) + ' | ')
 
-        return '\n'.join(repr)
+        return '\n'.join(repr) + '\n\n'
 
+
+    def add_token(self, column, player):
+        if column > self.columns:
+            return False
+        column -= 1
+        token = 'o' if player == 1 else 'x'
+        if self.nb_tokens[column] < self.rows:
+            self.nb_tokens[column] += 1
+            self.grid[self.rows-self.nb_tokens[column]][column] = token
+            return True
+        else:
+            return False
+
+
+        def check_winner(self, token):
+            #TODO: check http://romain.raveaux.free.fr/document/ReinforcementLearningbyQLearningConnectFourGame.html
+            # Check on lines
+            aligned = 0
+            for i in range(self.rows):
+                for j in range(self.colmuns):
+                    self.grid[]                
 
 
 grid = TicTacToeGrid()
+
+print(grid)
+
+print(grid.add_token(2, 1))
+print(grid.add_token(4, 2))
+print(grid.add_token(2, 1))
+print(grid.add_token(2, 1))
+print(grid.add_token(2, 1))
+print(grid.add_token(2, 1))
+print(grid.add_token(2, 1))
+print(grid.add_token(2, 1))
+print(grid.add_token(2, 1))
+print(grid.add_token(5, 1))
 
 print(grid)
