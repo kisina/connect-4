@@ -43,9 +43,32 @@ class TicTacToeGrid:
         if self.nb_tokens[column] < self.rows:
             self.nb_tokens[column] += 1
             self.grid[self.rows-self.nb_tokens[column]][column] = token
-            return 2 if self.check_winner(token) else 0
+            if self.check_winner(token):
+                return 2
+            else:
+                return 3 if self.check_game_full() else 0
         else:
-            return 1
+            nb_columns_full = 0
+            for c in range(self.columns):
+                if self.nb_tokens[c] == self.rows:
+                    nb_columns_full += 1
+
+            if nb_columns_full == self.columns:
+                return 3
+            else:
+                return 1
+
+
+    def check_game_full(self):
+        nb_columns_full = 0
+        for c in range(self.columns):
+            if self.nb_tokens[c] == self.rows:
+                nb_columns_full += 1
+
+        if nb_columns_full == self.columns:
+            return True
+        else:
+            return False
 
     def check_winner(self, token):
         COLUMN_COUNT = self.columns
@@ -76,6 +99,7 @@ class TicTacToeGrid:
                     return True
 
 
+
 grid = TicTacToeGrid()
 
 print(grid)
@@ -91,5 +115,8 @@ while resultat < 2:
 
 
 print(grid)
-print(f"Le joueur {joueur} a gagné !")
+if resultat == 3:
+    print("Partie nulle")
+else:
+    print(f"Le joueur {joueur} a gagné !")
 
