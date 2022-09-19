@@ -1,3 +1,6 @@
+import random
+import time
+
 class Hole:
     def __init__(self):
         self.status = None
@@ -6,17 +9,19 @@ class Hole:
         return self.status
 
 
-class TicTacToeGrid:
+class Connect4Grid:
     def __init__(self, rows=6, columns=7):
         self.rows = rows
         self.columns = columns
         self.grid = []
         self.nb_tokens = []
+        self.states = {}
         for i in range(rows):
             line = []
             for j in range(columns):
                 line.append(' ')
                 self.nb_tokens.append(0)
+                self.states[(j, i)] = 0
 
             self.grid.append(line)
 
@@ -41,6 +46,7 @@ class TicTacToeGrid:
         column -= 1
         token = 'o' if player == 1 else 'x'
         if self.nb_tokens[column] < self.rows:
+            self.states[(column, self.nb_tokens[column])] = player
             self.nb_tokens[column] += 1
             self.grid[self.rows-self.nb_tokens[column]][column] = token
             if self.check_winner(token):
@@ -100,17 +106,31 @@ class TicTacToeGrid:
 
 
 
-grid = TicTacToeGrid()
+class Player():
+    def __init__(self, number):
+        self.number = number
+
+    def action(self):
+        return random.randint(1, 7)
+
+
+player1 = Player(1)
+player2 = Player(2)
+
+grid = Connect4Grid()
 
 print(grid)
 
 joueur = 1
 resultat = 0
 while resultat < 2:
-    colonne = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
+    #colonne = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
+    colonne = player1.action()
     resultat = grid.add_token(colonne, joueur)
     if resultat == 0:
         print(grid)
+        print(grid.states)
+        time.sleep(1)
         joueur = 2 if joueur == 1 else 1
 
 
