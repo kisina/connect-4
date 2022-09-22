@@ -25,6 +25,8 @@ class Connect4Grid:
 
             self.grid.append(line)
 
+    def state(self):
+        return tuple(self.states.values())
 
     def __repr__(self):
         repr = []
@@ -107,12 +109,42 @@ class Connect4Grid:
 
 
 class Player():
-    def __init__(self, number):
+    def __init__(self, number, epsilon=0.7, alpha=0.05, gamma=0.9):
         self.number = number
+        self.Q = {}
+        self.epsilon = epsilon #probability of exploration we want to get at the end
+        self.alpha = alpha  # learing rate
+        self.gamma = gamma  # Discount factor
 
     def action(self):
-        return random.randint(1, 7)
+        rnd = random.random()
+        if rnd < self.epsilon:
+            action = random.randint(1, 7)
+        else:
+            action = random.randint(1, 7)
+            #action = self.Q[state, :].argmax()
+        return action
 
+    def updateQ(self, state, action, newstate, reward, alpha, gamma):
+        #!!!Finish this function but add a way to test if the index of the Q table already eists and create it automatically
+        """
+            (a)
+            (1, 2, 3)
+            (a, 4)
+            ((1, 2, 3), 4)
+            b=(a, 4)
+            b
+            ((1, 2, 3), 4)
+            c={b:56}
+            c
+            {((1, 2, 3), 4): 56}
+        """
+
+        firstterm = (1 - self.alpha) * Q[state, action]
+        secondterm = gamma * Q[newstate, :].max()
+        thirdterm = alpha * (reward + secondterm)
+        res = firstterm + thirdterm
+        Q[state, action] = res
 
 player1 = Player(1)
 player2 = Player(2)
@@ -129,7 +161,7 @@ while resultat < 2:
     resultat = grid.add_token(colonne, joueur)
     if resultat == 0:
         print(grid)
-        print(grid.states)
+        print(grid.state())
         time.sleep(1)
         joueur = 2 if joueur == 1 else 1
 
