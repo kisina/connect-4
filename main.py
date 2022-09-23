@@ -125,26 +125,31 @@ class Player():
             #action = self.Q[state, :].argmax()
         return action
 
-    def updateQ(self, state, action, newstate, reward, alpha, gamma):
-        #!!!Finish this function but add a way to test if the index of the Q table already eists and create it automatically
-        """
-            (a)
-            (1, 2, 3)
-            (a, 4)
-            ((1, 2, 3), 4)
-            b=(a, 4)
-            b
-            ((1, 2, 3), 4)
-            c={b:56}
-            c
-            {((1, 2, 3), 4): 56}
-        """
+    def get_Q_max(self, state):
+        #### !!! Faire une fonction pour distinguer get_Q_max de get_max_Q (là on renvoit la valeur il faudrait renvoyé l'index oiyr l'action avec : "return test.index(max(test))"
+        test = [0] * 7
+        try:
+            test = self.Q[state]
+        except:
+            self.Q[state] = [0] * 7
 
-        firstterm = (1 - self.alpha) * Q[state, action]
-        secondterm = gamma * Q[newstate, :].max()
-        thirdterm = alpha * (reward + secondterm)
+        return max(test)
+
+    def get_Q(self, state, action):
+        test = 0
+        action -= 1
+        try:
+            test = self.Q[state][action]
+        except:
+            self.Q[state] = [0] * 7
+        return test
+
+    def updateQ(self, state, action, new_state, reward):
+        firstterm = (1 - self.alpha) * self.get_Q(state, action)
+        secondterm = self.gamma * self.get_Q_max(new_state)
+        thirdterm = self.alpha * (reward + secondterm)
         res = firstterm + thirdterm
-        Q[state, action] = res
+        self.Q[state][action] = res
 
 player1 = Player(1)
 player2 = Player(2)
