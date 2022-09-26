@@ -1,6 +1,7 @@
 import random
 import time
 
+
 class Hole:
     def __init__(self):
         self.status = None
@@ -41,8 +42,16 @@ class Connect4Grid:
 
         return '\n'.join(repr) + '\n\n'
 
-
     def add_token(self, column, player):
+        """
+        :param column:
+        :param player:
+        :return:
+          - 0 if the action was accepted (without leading to a full grid or a win)
+          - 1 if the column is full
+          - 2 if action makes plyer win
+          - 3 if the grid is full
+        """
         if column > self.columns:
             return False
         column -= 1
@@ -65,7 +74,6 @@ class Connect4Grid:
                 return 3
             else:
                 return 1
-
 
     def check_game_full(self):
         nb_columns_full = 0
@@ -94,21 +102,20 @@ class Connect4Grid:
                 if M[r][c] == token and M[r + 1][c] == token and M[r + 2][c] == token and M[r + 3][c] == token:
                     return True
 
-        # Check positively sloped diaganols
+        # Check positively sloped diagonals
         for c in range(COLUMN_COUNT - 3):
             for r in range(ROW_COUNT - 3):
                 if M[r][c] == token and M[r + 1][c + 1] == token and M[r + 2][c + 2] == token and M[r + 3][c + 3] == token:
                     return True
 
-        # Check negatively sloped diaganols
+        # Check negatively sloped diagonals
         for c in range(COLUMN_COUNT - 3):
             for r in range(3, ROW_COUNT):
                 if M[r][c] == token and M[r - 1][c + 1] == token and M[r - 2][c + 2] == token and M[r - 3][c + 3] == token:
                     return True
 
 
-
-class Player():
+class Player:
     def __init__(self, number, epsilon=0.7, alpha=0.05, gamma=0.9):
         self.number = number
         self.Q = {}
@@ -116,26 +123,25 @@ class Player():
         self.alpha = alpha  # learing rate
         self.gamma = gamma  # Discount factor
 
-    def action(self):
+    def action(self, state):
         rnd = random.random()
         if rnd < self.epsilon:
-            action = random.randint(1, 7)
+            _, action = self.get_q_max(state)
         else:
             action = random.randint(1, 7)
-            #action = self.Q[state, :].argmax()
+
         return action
 
-    def get_Q_max(self, state):
-        #### !!! Faire une fonction pour distinguer get_Q_max de get_max_Q (là on renvoit la valeur il faudrait renvoyé l'index oiyr l'action avec : "return test.index(max(test))"
+    def get_q_max(self, state):
         test = [0] * 7
         try:
             test = self.Q[state]
         except:
             self.Q[state] = [0] * 7
 
-        return max(test)
+        return max(test), test.index(max(test))
 
-    def get_Q(self, state, action):
+    def get_q(self, state, action):
         test = 0
         action -= 1
         try:
@@ -144,9 +150,9 @@ class Player():
             self.Q[state] = [0] * 7
         return test
 
-    def updateQ(self, state, action, new_state, reward):
-        firstterm = (1 - self.alpha) * self.get_Q(state, action)
-        secondterm = self.gamma * self.get_Q_max(new_state)
+    def update_q(self, state, action, new_state, reward):
+        firstterm = (1 - self.alpha) * self.get_q(state, action)
+        secondterm = self.gamma * self.get_q_max(new_state)
         thirdterm = self.alpha * (reward + secondterm)
         res = firstterm + thirdterm
         self.Q[state][action] = res
@@ -161,9 +167,22 @@ print(grid)
 joueur = 1
 resultat = 0
 while resultat < 2:
-    #colonne = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
+    # colonne = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
     colonne = player1.action()
+    state = grid.state()
     resultat = grid.add_token(colonne, joueur)
+    new_state = grid.state()
+
+    # !!! A strategy of reward has to be setup. Potentially the reward could be revised after the win / loss of the game
+    # to adjust the Q table (it could depend on the number of tokens played (room left on the game --> see a.count(0) to
+    # count the number of values at "0" in a tuple)
+    """
+          - 0 if the action was accepted (without leading to a full grid or a win)
+          - 1 if the column is full
+          - 2 if action makes plyer win
+          - 3 if the grid is full
+    """
+
     if resultat == 0:
         print(grid)
         print(grid.state())
