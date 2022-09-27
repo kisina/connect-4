@@ -21,13 +21,18 @@ class Connect4Grid:
             line = []
             for j in range(columns):
                 line.append(' ')
-                self.nb_tokens.append(0)
+                if i == 0:
+                    self.nb_tokens.append(0)
                 self.states[(j, i)] = 0
 
             self.grid.append(line)
 
     def state(self):
         return tuple(self.states.values())
+
+    def share_of_slot_available(self):
+        return self.state().count(0)/(self.rows*self.columns)
+
 
     def __repr__(self):
         repr = []
@@ -127,6 +132,7 @@ class Player:
         rnd = random.random()
         if rnd < self.epsilon:
             _, action = self.get_q_max(state)
+            action += 1
         else:
             action = random.randint(1, 7)
 
@@ -163,12 +169,12 @@ player2 = Player(2)
 grid = Connect4Grid()
 
 print(grid)
-
+state = grid.state()
 joueur = 1
 resultat = 0
 while resultat < 2:
     # colonne = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
-    colonne = player1.action()
+    colonne = player1.action(state)
     state = grid.state()
     resultat = grid.add_token(colonne, joueur)
     new_state = grid.state()
@@ -185,7 +191,8 @@ while resultat < 2:
 
     if resultat == 0:
         print(grid)
-        print(grid.state())
+        print(f"Grid state: {grid.state()}")
+        print(grid.share_of_slot_available())
         time.sleep(1)
         joueur = 2 if joueur == 1 else 1
 
