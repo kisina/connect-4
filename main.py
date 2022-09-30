@@ -127,6 +127,8 @@ class Player:
         self.epsilon = epsilon #probability of exploration we want to get at the end
         self.alpha = alpha  # learing rate
         self.gamma = gamma  # Discount factor
+        # To store all the states and actions in an episode to update reward later
+        self.states_and_actions_in_episode = []
 
     def action(self, state):
         rnd = random.random()
@@ -162,6 +164,12 @@ class Player:
         thirdterm = self.alpha * (reward + secondterm)
         res = firstterm + thirdterm
         self.Q[state][action] = res
+        self.states_and_actions_in_episode.append((state, action))
+
+    def update_q_after_episode(self, revision):
+        for sate, action in self.states_and_actions_in_episode:
+            self.Q[state][action] *= revision
+
 
 player1 = Player(1)
 player2 = Player(2)
@@ -178,14 +186,19 @@ while resultat < 2:
     state = grid.state()
     resultat = grid.add_token(colonne, joueur)
     new_state = grid.state()
+    reward = -1 if resultat == 1 else 1
+    player1.update_q(state, colonne, new_state, reward)
 
     # !!! A strategy of reward has to be setup. Potentially the reward could be revised after the win / loss of the game
     # to adjust the Q table (it could depend on the number of tokens played (room left on the game --> see a.count(0) to
     # count the number of values at "0" in a tuple)
+
+    # Next time : use player1.update_q_after_episode to update the wieghts after a game based on the room left
+    # Then save the Q table in a file and be able to import it
     """
           - 0 if the action was accepted (without leading to a full grid or a win)
           - 1 if the column is full
-          - 2 if action makes plyer win
+          - 2 if action makes player win
           - 3 if the grid is full
     """
 
