@@ -1,6 +1,6 @@
 import random
 import time
-
+import pickle
 
 class Hole:
     def __init__(self):
@@ -121,31 +121,44 @@ class Connect4Grid:
 
 
 class Player:
-    def __init__(self, number, epsilon=0.7, alpha=0.05, gamma=0.9):
+    def __init__(self, number, epsilon=0.7, alpha=0.4, gamma=0.9, q_table_file_name="", human=False):
         self.number = number
-        self.Q = {}
+        self.human = human
+        self.q_table = {}
         self.epsilon = epsilon #probability of exploration we want to get at the end
         self.alpha = alpha  # learing rate
         self.gamma = gamma  # Discount factor
         # To store all the states and actions in an episode to update reward later
         self.states_and_actions_in_episode = []
 
+        self.q_table_file_name = f"q_table_player_{number}.p" if q_table_file_name == "" else q_table_file_name
+        try:
+            self.q_table = pickle.load(open(self.q_table_file_name, "rb"))
+        except:
+            self.q_table = {}
+
+    def save_q_table(self):
+        pickle.dump(self.q_table, open(self.q_table_file_name, "wb"))
+
     def action(self, state):
-        rnd = random.random()
-        if rnd < self.epsilon:
-            _, action = self.get_q_max(state)
-            action += 1
+        if not self.human:
+            rnd = random.random()
+            if rnd < self.epsilon:
+                _, action = self.get_q_max(state)
+                action += 1
+            else:
+                action = random.randint(1, 7)
         else:
-            action = random.randint(1, 7)
+            action = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
 
         return action
 
     def get_q_max(self, state):
         test = [0] * 7
         try:
-            test = self.Q[state]
+            test = self.q_table[state]
         except:
-            self.Q[state] = [0] * 7
+            self.q_table[state] = [0] * 7
 
         return max(test), test.index(max(test))
 
@@ -153,66 +166,80 @@ class Player:
         test = 0
         action -= 1
         try:
-            test = self.Q[state][action]
+            test = self.q_table[state][action]
         except:
-            self.Q[state] = [0] * 7
+            self.q_table[state] = [0] * 7
         return test
 
     def update_q(self, state, action, new_state, reward):
+        action -= 1
         firstterm = (1 - self.alpha) * self.get_q(state, action)
-        secondterm = self.gamma * self.get_q_max(new_state)
-        thirdterm = self.alpha * (reward + secondterm)
+        _, secondterm = self.get_q_max(new_state)
+        thirdterm = self.alpha * (reward + self.gamma * secondterm)
         res = firstterm + thirdterm
-        self.Q[state][action] = res
+        self.q_table[state][action] = res
         self.states_and_actions_in_episode.append((state, action))
 
     def update_q_after_episode(self, revision):
         for sate, action in self.states_and_actions_in_episode:
-            self.Q[state][action] *= revision
+            self.q_table[state][action] *= revision
 
 
-player1 = Player(1)
-player2 = Player(2)
+for i in range(500):
+    grid = Connect4Grid()
 
-grid = Connect4Grid()
+    player1 = Player(1)
+    player2 = Player(2, human=True)
 
-print(grid)
-state = grid.state()
-joueur = 1
-resultat = 0
-while resultat < 2:
-    # colonne = int(input(f"Joueur {joueur} - Choisissez la colonne: "))
-    colonne = player1.action(state)
+    # print(grid)
     state = grid.state()
-    resultat = grid.add_token(colonne, joueur)
-    new_state = grid.state()
-    reward = -1 if resultat == 1 else 1
-    player1.update_q(state, colonne, new_state, reward)
-
-    # !!! A strategy of reward has to be setup. Potentially the reward could be revised after the win / loss of the game
-    # to adjust the Q table (it could depend on the number of tokens played (room left on the game --> see a.count(0) to
-    # count the number of values at "0" in a tuple)
-
-    # Next time : use player1.update_q_after_episode to update the wieghts after a game based on the room left
-    # Then save the Q table in a file and be able to import it
-    """
-          - 0 if the action was accepted (without leading to a full grid or a win)
-          - 1 if the column is full
-          - 2 if action makes player win
-          - 3 if the grid is full
-    """
-
-    if resultat == 0:
+    joueur = 1
+    resultat = 0
+    while resultat < 2:
         print(grid)
-        print(f"Grid state: {grid.state()}")
-        print(grid.share_of_slot_available())
-        time.sleep(1)
-        joueur = 2 if joueur == 1 else 1
+
+        colonne = player1.action(state) if joueur == 1 else player2.action(state)
+
+        state = grid.state()
+        resultat = grid.add_token(colonne, joueur)
+        new_state = grid.state()
+        reward = 0 if resultat == 1 else 1
+        player1.update_q(state, colonne, new_state, reward) if joueur == 1 else player2.update_q(state, colonne, new_state, reward)
+
+        # !!! A strategy of reward has to be setup. Potentially the reward could be revised after the win / loss of the game
+        # to adjust the Q table (it could depend on the number of tokens played (room left on the game --> see a.count(0) to
+        # count the number of values at "0" in a tuple)
+
+        # Next time : use player1.update_q_after_episode to update the wieghts after a game based on the room left
+        # Then save the Q table in a file and be able to import it
+        """
+              - 0 if the action was accepted (without leading to a full grid or a win)
+              - 1 if the column is full
+              - 2 if action makes player win
+              - 3 if the grid is full
+        """
+
+        if resultat == 0:
+            # print(grid)
+            # print(f"Grid state: {grid.state()}")
+            # print(grid.share_of_slot_available())
+            # time.sleep(1)
+            joueur = 2 if joueur == 1 else 1
 
 
-print(grid)
-if resultat == 3:
-    print("Partie nulle")
-else:
-    print(f"Le joueur {joueur} a gagné !")
+    # print(grid)
+    if resultat == 3:
+        print("Partie nulle")
+    else:
+        print(f"Le joueur {joueur} a gagné !")
+        if joueur == 1:
+            player1.update_q_after_episode(1+grid.share_of_slot_available())
+            player2.update_q_after_episode(1-grid.share_of_slot_available())
+        else:
+            player2.update_q_after_episode(1 + grid.share_of_slot_available())
+            player1.update_q_after_episode(1 - grid.share_of_slot_available())
 
+    player1.save_q_table()
+    player2.save_q_table()
+
+    print(f"states_and_actions_in_episode: {len(player1.states_and_actions_in_episode)}")
