@@ -189,14 +189,17 @@ for i in range(500):
     grid = Connect4Grid()
 
     player1 = Player(1)
-    player2 = Player(2, human=True)
+    player2 = Player(2)
+    # player2 = Player(2, human=True)
+
+    is_print_required = player1.human or player2.human
 
     # print(grid)
     state = grid.state()
-    joueur = 1
+    joueur = 2
     resultat = 0
     while resultat < 2:
-        print(grid)
+        print(grid) if is_print_required else None
 
         colonne = player1.action(state) if joueur == 1 else player2.action(state)
 
@@ -206,12 +209,7 @@ for i in range(500):
         reward = 0 if resultat == 1 else 1
         player1.update_q(state, colonne, new_state, reward) if joueur == 1 else player2.update_q(state, colonne, new_state, reward)
 
-        # !!! A strategy of reward has to be setup. Potentially the reward could be revised after the win / loss of the game
-        # to adjust the Q table (it could depend on the number of tokens played (room left on the game --> see a.count(0) to
-        # count the number of values at "0" in a tuple)
-
-        # Next time : use player1.update_q_after_episode to update the wieghts after a game based on the room left
-        # Then save the Q table in a file and be able to import it
+        # new idea : only reward the last (or the 2 to 3 last actions) if winning
         """
               - 0 if the action was accepted (without leading to a full grid or a win)
               - 1 if the column is full
@@ -227,11 +225,12 @@ for i in range(500):
             joueur = 2 if joueur == 1 else 1
 
 
-    # print(grid)
+    print(grid) if is_print_required else None
     if resultat == 3:
-        print("Partie nulle")
+        print("Null game")
     else:
-        print(f"Le joueur {joueur} a gagné !")
+        print(f"Game #{i} - Player {joueur} is the winner!, states_and_actions_in_episode: "
+              f"{len(player1.states_and_actions_in_episode)} / {len(player2.states_and_actions_in_episode)}")
         if joueur == 1:
             player1.update_q_after_episode(1+grid.share_of_slot_available())
             player2.update_q_after_episode(1-grid.share_of_slot_available())
@@ -242,4 +241,4 @@ for i in range(500):
     player1.save_q_table()
     player2.save_q_table()
 
-    print(f"states_and_actions_in_episode: {len(player1.states_and_actions_in_episode)}")
+    time.sleep(1) if is_print_required else None
