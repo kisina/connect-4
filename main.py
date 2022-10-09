@@ -181,22 +181,28 @@ class Player:
         self.states_and_actions_in_episode.append((state, action))
 
     def update_q_after_episode(self, revision):
-        for sate, action in self.states_and_actions_in_episode:
-            self.q_table[state][action] *= revision
+        sate, action = self.states_and_actions_in_episode[-1]
+        self.q_table[state][action] += revision
+        sate, action = self.states_and_actions_in_episode[-2]
+        self.q_table[state][action] += revision
+        sate, action = self.states_and_actions_in_episode[-3]
+        self.q_table[state][action] += revision
+        # for sate, action in self.states_and_actions_in_episode:
+        #     self.q_table[state][action] *= revision
 
 
 for i in range(500):
     grid = Connect4Grid()
 
     player1 = Player(1)
-    player2 = Player(2)
-    # player2 = Player(2, human=True)
+    # player2 = Player(2)
+    player2 = Player(2, human=True)
 
     is_print_required = player1.human or player2.human
 
     # print(grid)
     state = grid.state()
-    joueur = 2
+    joueur = 1
     resultat = 0
     while resultat < 2:
         print(grid) if is_print_required else None
@@ -206,7 +212,15 @@ for i in range(500):
         state = grid.state()
         resultat = grid.add_token(colonne, joueur)
         new_state = grid.state()
-        reward = 0 if resultat == 1 else 1
+        if resultat == 1:
+            reward = -1
+        elif resultat == 0:
+            reward = 0
+        elif resultat == 2:
+            reward = 1
+        else:
+            reward = 0
+
         player1.update_q(state, colonne, new_state, reward) if joueur == 1 else player2.update_q(state, colonne, new_state, reward)
 
         # new idea : only reward the last (or the 2 to 3 last actions) if winning
@@ -232,11 +246,15 @@ for i in range(500):
         print(f"Game #{i} - Player {joueur} is the winner!, states_and_actions_in_episode: "
               f"{len(player1.states_and_actions_in_episode)} / {len(player2.states_and_actions_in_episode)}")
         if joueur == 1:
-            player1.update_q_after_episode(1+grid.share_of_slot_available())
-            player2.update_q_after_episode(1-grid.share_of_slot_available())
+            # player1.update_q_after_episode(1+grid.share_of_slot_available())
+            # player2.update_q_after_episode(1-grid.share_of_slot_available())
+            player1.update_q_after_episode(0.5)
+            player2.update_q_after_episode(-0.5)
         else:
-            player2.update_q_after_episode(1 + grid.share_of_slot_available())
-            player1.update_q_after_episode(1 - grid.share_of_slot_available())
+            # player2.update_q_after_episode(1 + grid.share_of_slot_available())
+            # player1.update_q_after_episode(1 - grid.share_of_slot_available())
+            player2.update_q_after_episode(0.5)
+            player1.update_q_after_episode(-0.5)
 
     player1.save_q_table()
     player2.save_q_table()
