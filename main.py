@@ -121,7 +121,7 @@ class Connect4Grid:
 
 
 class Player:
-    def __init__(self, number, epsilon=0.7, alpha=0.4, gamma=0.9, q_table_file_name="", human=False):
+    def __init__(self, number, epsilon=0.5, alpha=0.4, gamma=0.7, q_table_file_name="", human=False):
         self.number = number
         self.human = human
         self.q_table = {}
@@ -191,12 +191,14 @@ class Player:
         #     self.q_table[state][action] *= revision
 
 
-for i in range(500):
+for i in range(1000):
+    start_time = time.time()
     grid = Connect4Grid()
 
     player1 = Player(1)
-    # player2 = Player(2)
-    player2 = Player(2, human=True)
+    player2 = Player(2)
+    # player2 = Player(2, human=True)
+    player2 = Player(2, epsilon=0, q_table_file_name="test2.p")
 
     is_print_required = player1.human or player2.human
 
@@ -243,7 +245,7 @@ for i in range(500):
     if resultat == 3:
         print("Null game")
     else:
-        print(f"Game #{i} - Player {joueur} is the winner!, states_and_actions_in_episode: "
+        print(f"Game #{i} - {time.time() - start_time} seconds - Player {joueur} is the winner!, states_and_actions_in_episode: "
               f"{len(player1.states_and_actions_in_episode)} / {len(player2.states_and_actions_in_episode)}")
         if joueur == 1:
             # player1.update_q_after_episode(1+grid.share_of_slot_available())
