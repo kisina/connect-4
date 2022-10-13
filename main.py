@@ -195,9 +195,9 @@ for i in range(1000):
     start_time = time.time()
     grid = Connect4Grid()
 
-    player1 = Player(1)
+    player1 = Player(1, q_table_file_name="test_learning.p")
     player2 = Player(2)
-    player2 = Player(2, human=True)
+    player2 = Player(2, human=True, q_table_file_name="test_learning_human.p")
     # player2 = Player(2, epsilon=0, q_table_file_name="test2.p")
 
     is_print_required = player1.human or player2.human
